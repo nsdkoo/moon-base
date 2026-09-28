@@ -8,8 +8,9 @@
 
 - [GitHub Pages 网站（推荐，直接打开）](https://nsdkoo.github.io/moon-base/)
 - [WorkBuddy 托管镜像（国内直连）](https://moon-base-trq1.app.workbuddy.host/)
+- [Surge CDN 镜像](https://moonbase-trq1.surge.sh/)
 
-GitHub Pages 是完整的公网网站入口，输入网址即可打开；WorkBuddy 镜像为国内网络提供一条免登录的直连入口。
+GitHub Pages 是完整的公网网站入口，输入网址即可打开；WorkBuddy 镜像为国内网络提供一条免登录的直连入口；Surge 镜像分布在全球 11 个节点。
 
 ## 运行截图
 
