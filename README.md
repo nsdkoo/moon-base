@@ -4,7 +4,7 @@
 
 ## 在线体验
 
-部署地址将在 GitHub Pages 启用后更新到这里。
+[打开在线体验：GitHub Pages](https://nsdkoo.github.io/moon-base/)
 
 ## 运行截图
 
