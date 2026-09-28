@@ -4,7 +4,13 @@
 
 ## 在线体验
 
-[打开在线体验：GitHub Pages](https://nsdkoo.github.io/moon-base/)
+公网入口：
+
+- [GitHub Pages 网站（推荐，直接打开）](https://nsdkoo.github.io/moon-base/)
+- [稳定 CDN 备用（固定 commit，长期不变）](https://cdn.jsdelivr.net/gh/nsdkoo/moon-base@2056216/index.html)
+- [最新 CDN 备用（跟随 main）](https://cdn.jsdelivr.net/gh/nsdkoo/moon-base@main/index.html)
+
+GitHub Pages 是完整的公网网站入口，输入网址即可打开。jsDelivr 作为静态备用入口：固定 commit 地址适合长期分享，`main` 地址会跟随代码更新。
 
 ## 运行截图
 
