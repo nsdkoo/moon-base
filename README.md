@@ -14,13 +14,13 @@ GitHub Pages 是完整的公网网站入口，输入网址即可打开。jsDeliv
 
 ## 运行截图
 
-![基地总览](shots/expanded-base.png)
+![基地总览 · 月昼](shots/readme-day.png)
 
-![机器人生活区](shots/colony-life.png)
+![栖居区近景：穹顶控制台、温室与机器人](shots/readme-habitat.png)
 
-![矿车与扩建区近景](shots/freight-detail.png)
+![月夜 · 火箭升空](shots/readme-night.png)
 
-![外围飞船与基地运行](shots/automatic-flight.png)
+![昼夜循环与火箭返航](shots/readme-launch.png)
 
 双击 `index.html` 即可运行。Three.js、场景代码和地球纹理均已内嵌，成品无需联网或安装依赖。
 

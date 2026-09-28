@@ -1,3 +1,4 @@
 preview-session.log
 *.tmp
 *.bak
+.wbapp_*.genie
