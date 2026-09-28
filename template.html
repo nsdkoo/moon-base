@@ -1,0 +1,284 @@
+<!DOCTYPE html><html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>静海基地 TRQ-1 · 月面基地</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='13' fill='%23aab4c8'/><circle cx='11' cy='12' r='3' fill='%237e8899'/><circle cx='20' cy='19' r='4' fill='%238e98aa'/><circle cx='13' cy='21' r='2' fill='%237e8899'/></svg>"/>
+<style>
+:root{
+  --cy:#46e0ff; --cy2:#1fa8c9; --amber:#ffc46b;
+  --bg:rgba(6,12,22,.78); --bg2:rgba(8,14,26,.92);
+  --txt:#d7ecff; --dim:#7fa3bd;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#04060c;
+  font-family:ui-monospace,"Cascadia Mono",Menlo,Consolas,"PingFang SC","Microsoft YaHei",monospace;
+  color:var(--txt);-webkit-font-smoothing:antialiased}
+#c{position:fixed;inset:0;display:block;cursor:grab}
+#c.drag{cursor:grabbing}
+#c{touch-action:none}
+#vignette{position:fixed;inset:0;z-index:3;pointer-events:none;background:radial-gradient(ellipse at 50% 47%,transparent 42%,rgba(2,5,12,.18) 72%,rgba(1,3,8,.68) 100%);mix-blend-mode:multiply;opacity:.72}
+
+.chip{background:var(--bg);border:1px solid rgba(70,224,255,.22);border-radius:10px;
+  box-shadow:0 0 18px rgba(70,224,255,.10),inset 0 0 24px rgba(70,224,255,.04);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+
+#brand{position:fixed;left:14px;top:14px;padding:10px 14px;z-index:6;pointer-events:none;min-width:220px}
+#brand h1{margin:0;font-size:15px;letter-spacing:.24em;color:var(--cy);font-weight:600;
+  text-shadow:0 0 12px rgba(70,224,255,.6)}
+#brand h1 small{font-size:10px;letter-spacing:.12em;color:var(--dim);margin-left:8px;text-shadow:none}
+#brand .row{display:flex;gap:12px;margin-top:6px;font-size:11px;color:var(--dim);letter-spacing:.06em}
+#brand .row b{color:var(--txt);font-weight:500}
+#clock{color:var(--amber);text-shadow:0 0 8px rgba(255,196,107,.45)}
+#fps.good{color:#8fe6a8}#fps.mid{color:var(--amber)}#fps.bad{color:#ff8d7d}
+
+#inspect{position:fixed;right:14px;top:14px;width:254px;padding:12px 14px;z-index:6;display:none}
+#inspect.show{display:block;animation:pop .18s ease-out}
+@keyframes pop{from{transform:translateY(-6px);opacity:0}to{transform:none;opacity:1}}
+#inspect h2{margin:0 0 2px;font-size:14px;letter-spacing:.12em;color:var(--cy);font-weight:600}
+#inspect .en{font-size:10px;color:var(--dim);letter-spacing:.14em;margin-bottom:8px}
+#inspect p{margin:6px 0;font-size:12px;line-height:1.65;color:var(--txt)}
+#inspect .stat{margin-top:8px;padding-top:8px;border-top:1px dashed rgba(70,224,255,.25);
+  font-size:11px;color:var(--amber);letter-spacing:.05em;min-height:1.2em}
+#inspect .x{position:absolute;right:8px;top:8px;cursor:pointer;color:var(--dim);font-size:12px;
+  border:1px solid rgba(70,224,255,.25);border-radius:4px;padding:1px 7px}
+#inspect .x:hover{color:#fff;border-color:var(--cy)}
+
+#bar{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);display:flex;align-items:center;gap:5px;
+  padding:8px 10px;z-index:6;max-width:calc(100vw - 16px);flex-wrap:wrap;justify-content:center}
+#bar button{font:inherit;font-size:12px;letter-spacing:.04em;color:var(--txt);
+  background:rgba(18,36,56,.55);border:1px solid rgba(70,224,255,.25);border-radius:7px;
+  padding:6px 9px;cursor:pointer;transition:border-color .15s,box-shadow .15s,color .15s;white-space:nowrap}
+#bar button:hover{border-color:var(--cy);box-shadow:0 0 10px rgba(70,224,255,.35);color:#fff}
+#bar button.on{background:rgba(70,224,255,.20);border-color:var(--cy);color:#fff;
+  text-shadow:0 0 6px var(--cy)}
+#bar button.amber.on{background:rgba(255,196,107,.18);border-color:var(--amber);
+  text-shadow:0 0 6px var(--amber)}
+#bar button:focus-visible{outline:2px solid var(--cy);outline-offset:1px}
+#bar button:disabled{opacity:.38;cursor:default;box-shadow:none}
+#bar .sep{width:1px;height:22px;background:rgba(70,224,255,.28);margin:0 4px}
+#bar .sl{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--dim);padding:0 2px}
+#bar input[type=range]{width:110px;accent-color:var(--cy)}
+
+#toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);padding:7px 16px;z-index:7;
+  font-size:13px;letter-spacing:.06em;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
+#toast.show{opacity:1}
+#toast b{color:var(--cy)}
+
+#labels{position:fixed;inset:0;pointer-events:none;z-index:4;overflow:hidden}
+.lbl{position:absolute;transform:translate(-50%,-100%);font-size:11px;letter-spacing:.08em;
+  color:var(--txt);background:rgba(6,12,22,.68);border:1px solid rgba(70,224,255,.30);
+  border-radius:5px;padding:2px 7px;white-space:nowrap;text-shadow:0 1px 2px #000}
+.lbl::after{content:"";position:absolute;left:50%;top:100%;width:1px;height:9px;
+  background:linear-gradient(rgba(70,224,255,.75),transparent)}
+.lbl i{font-style:normal;color:var(--dim);font-size:9px;margin-left:5px}
+
+#loading{position:fixed;inset:0;background:radial-gradient(1200px 700px at 50% 38%,#0a1220 0%,#04060c 70%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:20;transition:opacity .7s}
+#loading .moon{width:74px;height:74px;border-radius:50%;position:relative;
+  background:radial-gradient(circle at 36% 32%,#c8d2e4 0%,#93a0b6 45%,#5d6a80 100%);
+  box-shadow:0 0 44px rgba(150,180,230,.35),inset -10px -8px 22px rgba(20,30,50,.55)}
+#loading .moon::before,#loading .moon::after{content:"";position:absolute;border-radius:50%;background:rgba(90,104,128,.5)}
+#loading .moon::before{width:16px;height:16px;left:16px;top:20px}
+#loading .moon::after{width:11px;height:11px;left:42px;top:40px}
+#loading h1{margin:0;font-size:30px;letter-spacing:.42em;color:var(--cy);font-weight:500;
+  text-shadow:0 0 18px rgba(70,224,255,.7);padding-left:.42em}
+#loading .sub{font-size:11px;letter-spacing:.3em;color:var(--dim);padding-left:.3em}
+#pbar{width:380px;max-width:80vw;height:9px;border:1px solid rgba(70,224,255,.35);border-radius:5px;
+  overflow:hidden;background:rgba(70,224,255,.06)}
+#pfill{height:100%;width:0;background:linear-gradient(90deg,var(--cy2),var(--cy));
+  box-shadow:0 0 12px var(--cy);transition:width .12s}
+#pstat{font-size:12px;letter-spacing:.14em;min-height:1.2em;color:var(--txt)}
+#ptip{font-size:11px;color:var(--dim);letter-spacing:.05em;min-height:1.2em;max-width:78vw;text-align:center;line-height:1.6}
+
+#help{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+  background:rgba(2,4,8,.62);z-index:12}
+#help.show{display:flex}
+#help .box{width:min(700px,94vw);max-height:84vh;overflow:auto;padding:24px 28px}
+#help h2{margin:0 0 4px;color:var(--cy);letter-spacing:.26em;font-size:17px;font-weight:500}
+#help .en{font-size:10px;color:var(--dim);letter-spacing:.18em;margin-bottom:12px}
+#help h3{margin:16px 0 6px;font-size:12px;color:var(--amber);letter-spacing:.18em;font-weight:500}
+#help p{margin:6px 0;font-size:12.5px;line-height:1.75;color:var(--txt)}
+#help b{color:#fff}
+#help .grid{display:grid;grid-template-columns:1fr 1fr;gap:2px 22px;font-size:12px;line-height:1.9}
+#help .grid span{color:var(--dim)}
+#help .grid b{color:var(--txt);font-weight:500}
+#help .close{float:right;cursor:pointer;color:var(--dim);border:1px solid rgba(70,224,255,.3);
+  border-radius:5px;padding:2px 10px;font-size:12px}
+#help .close:hover{color:#fff;border-color:var(--cy)}
+#helpStats{color:var(--dim);font-size:11px;margin-top:14px;letter-spacing:.05em}
+
+@media (prefers-reduced-motion:reduce){#pfill,#toast,#bar button,#inspect{transition:none;animation:none}}
+@media (max-width:700px){
+  #brand{left:10px;top:10px;min-width:0;padding:8px 11px}
+  #brand h1{font-size:12px;letter-spacing:.14em}
+  #brand h1 small{display:none}
+  #brand .row{font-size:10px;gap:8px}
+  #bar{left:8px;right:8px;bottom:8px;transform:none;max-width:none;flex-wrap:nowrap;
+    justify-content:flex-start;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;padding:7px}
+  #bar::-webkit-scrollbar{display:none}
+  #bar button{font-size:11px;padding:7px 9px}
+  #bar .sl input{width:80px}
+  #toast{bottom:62px}
+  #inspect{right:10px;top:62px;width:min(260px,calc(100vw - 20px))}
+}
+:root{--cy:#dfbf86;--cy2:#a98651;--amber:#dfbf86;--bg:rgba(13,20,25,.78);--bg2:rgba(13,20,25,.96);--txt:#e1e6e5;--dim:#91a0a7}
+html,body{font-family:"Segoe UI","Microsoft YaHei",sans-serif;background:#03070c}
+.chip{border-color:rgba(199,216,220,.16);border-radius:12px;box-shadow:0 14px 45px #0005;backdrop-filter:blur(20px)}
+#brand{left:28px;top:25px;padding:0;min-width:0;background:none;border:0;box-shadow:none;backdrop-filter:none}
+#brand h1{display:flex;align-items:center;gap:11px;font-size:18px;letter-spacing:.19em;color:#e8ece9;text-shadow:none;font-weight:500}
+.mission-mark{display:inline-grid;place-items:center;width:31px;height:31px;border:1px solid #b2b8b866;border-radius:50%;font-size:15px;letter-spacing:0;color:#dec59d}
+#brand h1 small{font-size:9px;color:#c3c8c5;letter-spacing:.2em;margin:0}
+#brand .row{margin-left:42px;margin-top:4px;font-size:10px;letter-spacing:.12em;gap:14px}
+#clock{text-shadow:none;color:#c3c8c5}
+.live-dot{display:inline-block;width:5px;height:5px;background:#afc4b0;border-radius:50%;margin-right:6px;box-shadow:0 0 8px #afc4b055}
+.technical{display:none}
+#scene-caption{position:fixed;left:30px;bottom:107px;z-index:4;pointer-events:none;font-size:10px;color:#97a6ab;letter-spacing:.19em}
+#scene-caption b{display:block;font-size:13px;font-weight:400;color:#d0d7d5;letter-spacing:.13em;margin-bottom:7px}
+#bar{width:max-content;max-width:calc(100vw - 48px);bottom:22px;gap:7px;padding:9px 11px;flex-wrap:nowrap;overflow:visible;border-radius:14px;background:rgba(12,19,24,.89)}
+#bar button,#bar summary{font:inherit;font-size:11px;letter-spacing:.06em;border:0;color:#aebbc0;border-radius:7px;background:transparent;padding:10px 12px;cursor:pointer;white-space:nowrap;transition:background .2s,color .2s}
+#bar button:hover,#bar summary:hover{background:#ffffff0c;color:#fff;box-shadow:none}
+#bar button.on{background:#b99a6926;color:#f2d6a8;text-shadow:none;border-color:transparent}
+#bar button:active{transform:scale(.96)}
+#bar #bLaunch{background:#d1b17d;color:#1c242a;font-weight:600;padding-inline:17px}
+#bar .sep{background:#b0c3c329;height:20px;margin:0 3px;flex-shrink:0}
+#bar .sl{font-size:10px}
+#bar input[type=range]{width:76px;accent-color:#c8ac7e}
+#bar details{position:relative}
+#bar summary{list-style:none;display:block}
+#bar summary::-webkit-details-marker{display:none}
+#bar details[open] summary{background:#ffffff10;color:#e7d0a8}
+.settings-panel{position:absolute;bottom:52px;right:-10px;width:288px;max-height:calc(100vh - 160px);overflow-y:auto;padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:6px;background:rgba(12,20,26,.97);border:1px solid #c7d8dc29;border-radius:12px;box-shadow:0 16px 45px #0007}
+#bar .settings-panel .sl{grid-column:1/-1;justify-content:space-between;padding:8px 9px;margin-bottom:4px}
+#bar .settings-panel input{width:164px}
+#bar .settings-panel button{background:#ffffff05;text-align:left}
+#bar .settings-panel button.on{background:#b99a6926}
+#inspect{right:25px;top:25px;padding:20px;width:270px}
+#inspect h2{font-size:15px;letter-spacing:.06em;color:#dfc393}
+#inspect .en{font-size:9px;letter-spacing:.15em;margin-top:6px}
+#inspect p{font-size:12px;color:#abbac0;line-height:1.9;margin-top:14px}
+#inspect .x{border:0;right:12px;top:14px}
+#inspect .stat{border-top:1px solid #ffffff15;color:#c6b28e}
+#toast{bottom:98px;font-size:12px}
+#vignette{opacity:.38}
+.lbl{font-size:10px;letter-spacing:.04em;border-color:#e0c49644;background:#121d24dd;color:#e2d4bb;padding:5px 8px}
+.lbl i{display:none}
+#loading{background:radial-gradient(ellipse at 50% 40%,#18232d,#050a10 70%)}
+#loading h1{color:#e1d4be;text-shadow:none;font-size:25px}
+#loading .moon{filter:grayscale(.7);box-shadow:0 0 44px #a7bdd322,inset -10px -8px 22px #141e328c}
+#pbar{height:3px;border:0;background:#ffffff13}
+#pfill{box-shadow:none}
+@media(max-width:900px){#bar{gap:3px;padding:7px}#bar button,#bar summary{padding:10px 9px}.desktop-view{display:none}}
+@media(max-width:700px){
+ #brand{left:18px;top:18px}#brand h1{font-size:14px;gap:8px}#brand .row{font-size:9px;gap:10px;margin-left:39px}
+ #brand h1 small{display:none}#scene-caption{left:19px;bottom:91px;font-size:8px;letter-spacing:.1em}#scene-caption b{font-size:11px}
+ #bar{left:12px;right:12px;bottom:14px;width:auto;max-width:none;transform:none;justify-content:space-between;overflow:visible;padding:7px 5px;gap:0}
+ #bar button,#bar summary{font-size:10px;padding:10px 8px}#bar #bLaunch{padding-inline:12px}#bar .sep{margin:0 2px}
+ #bar .settings-panel{right:-5px;bottom:49px;width:278px}#bar .settings-panel button{padding:10px}
+ #inspect{top:79px;right:16px;width:250px}#toast{bottom:83px}
+}
+</style></head>
+<body>
+<canvas id="c"></canvas>
+<div id="vignette"></div>
+
+<div id="brand" class="chip">
+  <h1><span class="mission-mark">◒</span>静海基地<small>TRQ—01 / TRANQUILITY</small></h1>
+  <div class="row"><span><i class="live-dot"></i>基地在线</span><span id="clock">月昼 1 · 06:58</span><span class="technical">帧率 <b id="fps">--</b> 状态 <b id="vox">--</b></span></div>
+</div>
+
+<div id="inspect" class="chip">
+  <span class="x" id="inspectX">关闭</span>
+  <h2 id="insName">--</h2><div class="en" id="insEn">--</div>
+  <p id="insDesc">--</p>
+  <div class="stat" id="insStat"></div>
+</div>
+
+<div id="labels"></div>
+<div id="toast" class="chip"></div>
+<div id="scene-caption"><b>人类的下一处栖居地</b>MARE TRANQUILLITATIS · 0.674° N / 23.473° E</div>
+
+<div id="bar" class="chip">
+  <button id="bOverview" title="基地总览">总览</button>
+  <button id="bHabitat" title="近看栖居区">栖居舱</button>
+  <button id="bLife" class="desktop-view" title="近看机器人生活与作业区">生活区</button>
+  <button id="bNight" title="切换月昼与月夜">月夜</button>
+  <button id="bOrbit" class="desktop-view" title="自动环绕基地">环绕</button>
+  <span class="sep"></span>
+  <button id="bLaunch" title="火箭发射（G）">发射</button>
+  <button id="bPause" title="暂停 / 继续（空格）">暂停</button>
+  <span class="sep desktop-view"></span>
+  <details id="sceneSettings">
+    <summary title="场景与模拟设置">设置</summary>
+    <div class="settings-panel">
+      <label class="sl">月面时刻<input id="time" type="range" min="0" max="1000" value="290"/></label>
+      <button id="bLabels" title="设施标签（B）" aria-pressed="false">设施标签</button>
+      <button id="bLights" class="on" title="基地灯光（L）">基地灯光</button>
+      <button id="bCycle" class="on" title="昼夜自动循环（T）">昼夜循环</button>
+      <button id="bEcology" class="on" aria-pressed="true" title="自动运输、发射和轨道交通循环">基地自运行</button>
+      <button id="bFreight" title="跟随矿车查看机械与矿料细节">矿运近景</button>
+      <button id="bExpansion" title="科研、医疗与生命保障分区">扩建区</button>
+      <button id="bSpeed" title="模拟速度（S）">1×</button>
+      <button id="bHopper" title="呼叫跳跃器（J）">运输转场</button>
+      <button id="bPatrol" class="on" title="巡视车巡逻（P）">巡视车巡逻</button>
+      <button id="bMeteor" title="流星雨（M）">流星雨</button>
+      <button id="bStorm" title="月尘静电尘暴">月尘活动</button>
+      <button id="bShadows" class="on" title="阴影">实时阴影</button>
+      <button id="bSound" class="on" title="音效">环境音效</button>
+      <button id="bReset" title="视角复位（R）">视角复位</button>
+      <button id="bHelp" title="帮助（H）">操作指南</button>
+    </div>
+  </details>
+</div>
+
+<div id="loading">
+  <div class="moon"></div>
+  <h1>静海基地</h1>
+  <div class="sub">TRQ-1 · TRANQUILITY BASE · LUNAR OUTPOST</div>
+  <div id="pbar"><div id="pfill"></div></div>
+  <div id="pstat">正在唤醒月壤……</div>
+  <div id="ptip"></div>
+</div>
+
+<div id="help">
+  <div class="box chip">
+    <span class="close" id="helpClose">关闭</span>
+    <h2>静海基地 TRQ-1</h2><div class="en">TRANQUILITY BASE · LUNAR OUTPOST</div>
+    <p>静海基地是一座持续运转的机器人聚落。伙伴机器人在穹顶内值班、整理补给，在充电港休整，在维修台协作；无人机巡检、搬运并返回停机坪，自动补给车在设施间穿行。环线矿车、起重机和采矿设备共同组成月面日常。</p>
+    <h3>月球氛围（皆有依据）</h3>
+    <p>月球没有大气，所以<b>天空永远是黑的</b>，银河和星星在白天也挂在头顶，影子边缘锋利如刀。因为<b>潮汐锁定</b>，地球悬在月面天空的同一位置不动——模型里它就挂在东北方，夜里还有一圈淡淡的<b>地照</b>蓝光。1968 年阿波罗 8 号在月球轨道拍下的「地出」就是这个画面。纪念广场上的铭牌复刻了阿波罗 11 号那块：<b>HERE MEN FROM THE PLANET EARTH FIRST SET FOOT UPON THE MOON</b>，旁边的激光反射器至今仍在接受地球发来的测距激光。</p>
+    <h3>相机</h3>
+    <div class="grid">
+      <span>左键拖拽</span><b>环绕旋转</b>
+      <span>右键 / 中键 / Shift+拖拽</span><b>平移</b>
+      <span>滚轮</span><b>缩放（从机器人到整个基地）</b>
+      <span>双击</span><b>视角复位</b>
+      <span>数字键 1–9、0</span><b>十个预设机位（9 是深空全景）</b>
+      <span>点击设施 / 车辆 / 机器人</span><b>相机飞抵并触发其动作</b>
+    </div>
+    <h3>可以点击的</h3>
+    <p><b>火箭 / 发射场</b>点火发射，稍后自动返回着陆 · <b>指挥塔</b>切换全基地灯光 · <b>车库</b>派出 / 召回巡视车 · <b>着陆场</b>呼叫跳跃器转场 · <b>温室</b>切换生长灯 · <b>机器人</b>挥手致意 · <b>列车 / 补给车 / 无人机 / 跳跃器</b>相机跟随 · <b>地面</b>扬起一阵月尘。</p>
+    <h3>快捷键</h3>
+    <div class="grid">
+      <span>空格</span><b>暂停 / 继续</b>
+      <span>S</span><b>速度 1×/2×/4×</b>
+      <span>T</span><b>昼夜循环开关</b>
+      <span>G</span><b>火箭发射</b>
+      <span>J</span><b>呼叫跳跃器</b>
+      <span>P</span><b>巡视车巡逻</b>
+      <span>M</span><b>流星雨</b>
+      <span>L</span><b>基地灯光</b>
+      <span>B</span><b>标签</b>
+      <span>R</span><b>视角复位</b>
+    </div>
+    <p id="helpStats"></p>
+  </div>
+</div>
+
+<script>
+window.__errors=[];
+addEventListener('error',function(e){window.__errors.push(String(e.message||e));});
+addEventListener('unhandledrejection',function(e){window.__errors.push('Promise: '+String(e.reason));});
+</script>
+<script>/*__THREE__*/</script>
+<script>/*__APP__*/</script>
+</body></html>
