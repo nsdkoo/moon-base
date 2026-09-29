@@ -1,3 +1,5 @@
 shots/
 *.log
 __pycache__/
+.workbuddy/
+.wbapp_*.genie
