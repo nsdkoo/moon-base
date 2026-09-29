@@ -1,4 +1,3 @@
-preview-session.log
-*.tmp
-*.bak
-.wbapp_*.genie
+shots/
+*.log
+__pycache__/
